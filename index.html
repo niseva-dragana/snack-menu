@@ -263,8 +263,8 @@ const ITEMS = [
     img: [{ l: "Оригинал", s: "img/cocacola.jpg" }, { l: "Zero", s: "img/cocacola-zero.jpg" }] },
   { n: "Fanta", p: 50, c: "drinks", k: "фанта orange портокал",
     img: [{ l: "", s: "img/fanta.jpg" }] },
-  { n: "Schweppes", p: 50, c: "drinks", k: "sveps швепс свепс tonic тоник", note: "Tonic Water",
-    img: [{ l: "", s: "img/schweppes.jpg" }] },
+  { n: "Schweppes", p: 50, c: "drinks", k: "sveps швепс свепс tonic тоник bitter lemon битер лимон",
+    img: [{ l: "Tonic", s: "img/schweppes.jpg" }, { l: "Bitter Lemon", s: "img/schweppes-bitter.jpg" }] },
   { n: "Добра вода", p: 50, c: "drinks", k: "dobra voda",
     img: [{ l: "Active", s: "img/dobravoda-active.jpg" }, { l: "Wellness ѓумбир", s: "img/dobravoda-wellness.jpg" }] },
   { n: "Viva Fresh", p: 50, c: "drinks", k: "вива сок", note: "Мулти витамин",
@@ -288,10 +288,12 @@ const ITEMS = [
   // Слатко
   { n: "Медењаци", p: 45, c: "sweets", k: "medenjaci medenjak", note: "SL, со портокал",
     img: [{ l: "", s: "img/medenjak.jpg" }] },
-  { n: "7Days Max", p: 45, c: "sweets", k: "7 days max kroasan кроасан седум", note: "Кроасан со какао крем",
-    img: [{ l: "", s: "img/7days-max.jpg" }] },
+  { n: "7Days Max", p: 45, c: "sweets", k: "7 days max kroasan кроасан седум", note: "Кроасан",
+    img: [{ l: "Какао", s: "img/7days-max.jpg" }, { l: "Шумско овошје", s: "img/7days-fruit.jpg" }, { l: "Кикирики", s: "img/7days-peanut.jpg" }] },
   { n: "7Days Super Max", p: 60, c: "sweets", k: "7 days super max kroasan кроасан седум", note: "Кроасан со какао крем",
     img: [{ l: "", s: "img/7days-supermax.jpg" }] },
+  { n: "7Days Double Super Max", p: 45, c: "sweets", k: "7 days double super max kroasan кроасан седум дабл", note: "Какао и ванила",
+    img: [{ l: "", s: "img/7days-double.jpg" }] },
   { n: "Euro вафел", p: 30, c: "sweets", k: "euro vafel еуро choco 4",
     img: [{ l: "", s: "img/eurovafel.jpg" }] },
   { n: "Albeni", p: 30, c: "sweets", k: "албени ulker",
@@ -334,8 +336,8 @@ const ITEMS = [
   // Солено
   { n: "Chipsy", p: 25, c: "salty", k: "чипс cipsi solen lut chips classic chili rebrasti ребрасти", note: "Солен или лут",
     img: [{ l: "Солен", s: "img/chipsy-classic.jpg" }, { l: "Лут", s: "img/chipsy-chili.jpg" }] },
-  { n: "Chipsy домаќински", p: 60, c: "salty", k: "чипс cipsi domakinski domacinski kajmak кајмак", note: "Со вкус на кајмак",
-    img: [{ l: "", s: "img/chipsy-domacinski.jpg" }] },
+  { n: "Chipsy домаќински", p: 60, c: "salty", k: "чипс cipsi domakinski domacinski kajmak кајмак sira сирење", 
+    img: [{ l: "Кајмак", s: "img/chipsy-domacinski.jpg" }, { l: "Сирење", s: "img/chipsy-domacinski-sira.jpg" }] },
   { n: "Funky", p: 20, c: "salty", k: "fankite фанките фанки",
     img: [{ l: "Пилешко", s: "img/funky-chicken.jpg" }, { l: "Кечап", s: "img/funky-ketchup.jpg" }] },
   { n: "Smoki", p: 20, c: "salty", k: "смоки kikiriki кикирики",
@@ -346,8 +348,8 @@ const ITEMS = [
     img: [{ l: "", s: "img/hello.jpg" }] },
   { n: "Pardon", p: 30, c: "salty", k: "пардон stapici", note: "Стапчиња со кикирики",
     img: [{ l: "", s: "img/pardon.jpg" }] },
-  { n: "Patos", p: 20, c: "salty", k: "патос rolls", note: "Hot Pepper",
-    img: [{ l: "", s: "img/patos.jpg" }] },
+  { n: "Patos", p: 20, c: "salty", k: "патос rolls baharatli зачинет",
+    img: [{ l: "Лут", s: "img/patos.jpg" }, { l: "Зачинет", s: "img/patos-baharatli.jpg" }] },
   { n: "Bake Rolls", p: 55, c: "salty", k: "bejkrous bake rolls 7days бејк ролс",
     img: [
       { l: "Бекон", s: "img/bakerolls-bacon.jpg" },
@@ -433,11 +435,35 @@ $("#menu").addEventListener("click", e => {
   const it = ITEMS[+b.dataset.item];
   const ph = it.img[+b.dataset.i];
   const cardEl = b.closest(".card");
-  const img = $("img", cardEl);
+  let img = $("img", cardEl);
+  if (!img) {
+    img = document.createElement("img");
+    img.width = 520; img.height = 520;
+    $(".ph", cardEl).replaceWith(img);
+  }
+  img.removeAttribute("data-retried");
   img.src = ph.s;
   img.alt = it.n + " " + ph.l;
   cardEl.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === b));
 });
+
+// If a photo fails to load, retry it once; if it still fails, show the initials tile instead of a broken icon.
+$("#menu").addEventListener("error", e => {
+  const img = e.target;
+  if (img.tagName !== "IMG") return;
+  if (!img.dataset.retried) {
+    img.dataset.retried = "1";
+    img.src = img.src.split("?")[0] + "?r=" + Date.now();
+    return;
+  }
+  const it = ITEMS[+img.closest(".card").dataset.idx];
+  const ph = document.createElement("div");
+  ph.className = "ph";
+  ph.dataset.cat = it.c;
+  ph.setAttribute("aria-hidden", "true");
+  ph.textContent = initials(it.n);
+  img.replaceWith(ph);
+}, true);
 
 $("#summary").textContent = `${ITEMS.length} производи · пијалоци, слатко и солено`;
 renderTabs();
